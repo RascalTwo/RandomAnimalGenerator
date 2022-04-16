@@ -67,7 +67,21 @@ class DogCEO extends AnimalSource {
 	}
 }
 
-const SOURCES = [RandomDuck, AxoltlAPI, ZooAnimalAPI, DogCEO]
+class BunniesIO extends AnimalSource {
+	constructor() {
+		super('bunnies-io')
+	}
+
+	fetchRandomImage() {
+		return fetch('https://api.bunnies.io/v2/loop/random/?media=mp4,av1')
+			.then(response => response.json())
+			.then(data => {
+				IMG.src = data.media.poster
+			})
+	}
+}
+
+const SOURCES = [RandomDuck, AxoltlAPI, ZooAnimalAPI, DogCEO, BunniesIO]
 
 function fetchRandomImage() {
 	const source = SOURCES[Math.floor(Math.random() * SOURCES.length)]
