@@ -1,5 +1,6 @@
-const IMG = document.querySelector('img');
+const IMG = document.querySelectorAll('img');
 const FETCH_BUTTON = document.querySelector('button');
+const IMG_COUNT = document.querySelector('input');
 const SOURCE_SELECT = document.querySelector('#sources');
 const SPECIES_SELECT = document.querySelector('#species');
 const FIELDSET = document.querySelector('fieldset');
@@ -212,8 +213,7 @@ class SomeRandomAPI extends AnimalSource {
 /** @type {AnimalSource[]} */
 const SOURCES = [RandomDuck, AxoltlAPI, ZooAnimalAPI, DogCEO, BunniesIO, RandomFox, FishWatch, RandomDog, ElephantAPI, TheCatAPI, Shibe, SomeRandomAPI].map(Source => new Source().load());
 
-function fetchRandomImage() {
-	FIELDSET.disabled = true;
+function fetchRandomImage(nth) {
 	const selectedID = SOURCE_SELECT.value;
 	const selectedSpecies = SPECIES_SELECT.value;
 
@@ -228,17 +228,22 @@ function fetchRandomImage() {
 	return source.fetchRandomImage(source.species[Math.floor(Math.random() * source.species.length)])
 		.catch(err => alert(err.message))
 		.then((url) => new Promise((resolve, reject) => {
-			IMG.addEventListener('load', resolve, { once: true })
-			IMG.addEventListener('error', () => reject(new Error('Image failed to load')), { once: true })
-			IMG.src = url;
+			IMG[nth].addEventListener('load', resolve, { once: true })
+			IMG[nth].addEventListener('error', () => reject(new Error('Image failed to load')), { once: true })
+			IMG[nth].src = url;
 		}))
 		.catch(err => alert(err.message))
-		.then(() => {
-			FIELDSET.disabled = false;
-		})
 }
 
-FETCH_BUTTON.addEventListener('click', () => fetchRandomImage())
+FETCH_BUTTON.addEventListener('click', async () => {
+	FIELDSET.disabled = true;
+
+	const waiting = []
+	for (let i = 0; i < +IMG_COUNT.value; i++) waiting.push(fetchRandomImage(i))
+	await Promise.all(waiting);
+
+	FIELDSET.disabled = false;
+})
 
 
 for (const source of SOURCES) {
@@ -295,3 +300,10 @@ SOURCE_SELECT.addEventListener('change', renderSpecies);
 
 renderSources()
 renderSpecies()
+
+
+IMG_COUNT.addEventListener('change', ({ target: { value } }) => {
+	const count = +value;
+	IMG.forEach((img, i) => img.classList.toggle('hidden', i >= count))
+	document.querySelector('#image-container').style.setProperty('--columns', Math.ceil(count / 2))
+})
