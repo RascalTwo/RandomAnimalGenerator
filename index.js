@@ -5,6 +5,12 @@ const SOURCE_SELECT = document.querySelector('#sources');
 class AnimalSource {
 	constructor(id) {
 		this.id = id;
+		this.lastSaved = 0;
+	}
+
+	isStale(){
+		const diff = Date.now() - this.lastSaved;
+		return diff > 86400000;
 	}
 
 	load(){
@@ -16,6 +22,7 @@ class AnimalSource {
 	}
 
 	save(){
+		this.lastSaved = Date.now();
 		localStorage.setItem('urag-' + this.id, JSON.stringify(this))
 	}
 
@@ -115,7 +122,7 @@ class FishWatch extends AnimalSource {
 	}
 
 	async fetchRandomImage() {
-		if (!this.fishes.length) {
+		if (this.isStale()) {
 			this.fishes = await fetch('https://api.codetabs.com/v1/proxy?quest=https://www.fishwatch.gov/api/species').then(response => response.json())
 			this.save();
 		}
@@ -135,7 +142,7 @@ class RandomDog extends AnimalSource {
 	}
 
 	async fetchRandomImage() {
-		if (!this.filenames.length) {
+		if (this.isStale()) {
 			this.filenames = await fetch('https://random.dog/doggos').then(response => response.json())
 			this.save();
 		}
