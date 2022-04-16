@@ -1,5 +1,6 @@
 const IMG = document.querySelector('img');
 const FETCH_BUTTON = document.querySelector('button');
+const SOURCE_SELECT = document.querySelector('#sources');
 
 class AnimalSource {
 	constructor(id) {
@@ -84,8 +85,28 @@ class BunniesIO extends AnimalSource {
 const SOURCES = [RandomDuck, AxoltlAPI, ZooAnimalAPI, DogCEO, BunniesIO]
 
 function fetchRandomImage() {
-	const source = SOURCES[Math.floor(Math.random() * SOURCES.length)]
+	const selectedID = SOURCE_SELECT.value;
+
+	let source;
+	if (selectedID) {
+		source = SOURCES.find(source => new source().id === selectedID)
+	}
+	else {
+		source = SOURCES[Math.floor(Math.random() * SOURCES.length)]
+	}
+
 	return new source().fetchRandomImage();
 }
 
 FETCH_BUTTON.addEventListener('click', () => fetchRandomImage())
+
+
+for (const source of SOURCES) {
+	const instance = new source();
+
+	const option = document.createElement('option')
+	option.value = instance.id
+	option.textContent = instance.id
+
+	SOURCE_SELECT.appendChild(option);
+}
