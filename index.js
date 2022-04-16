@@ -7,6 +7,18 @@ class AnimalSource {
 		this.id = id;
 	}
 
+	load(){
+		const localData = localStorage.getItem('urag-' + this.id);
+		if (!localData) return this;
+		Object.assign(this, JSON.parse(localData));
+
+		return this;
+	}
+
+	save(){
+		localStorage.setItem('urag-' + this.id, JSON.stringify(this))
+	}
+
 	fetchRandomImage() {
 		throw new Error('Not Yet Implemented')
 	}
@@ -100,15 +112,12 @@ class FishWatch extends AnimalSource {
 	constructor() {
 		super('fishwatch')
 		this.fishes = [];
-
-		const localFishes = localStorage.getItem('urag-' + this.id);
-		if (localFishes) this.fishes = JSON.parse(localFishes);
 	}
 
 	async fetchRandomImage() {
 		if (!this.fishes.length) {
 			this.fishes = await fetch('https://api.codetabs.com/v1/proxy?quest=https://www.fishwatch.gov/api/species').then(response => response.json())
-			localStorage.setItem('urag-' + this.id, JSON.stringify(this.fishes))
+			this.save();
 		}
 
 		const fish = this.fishes[Math.floor(Math.random() * this.fishes.length)]
@@ -123,15 +132,12 @@ class RandomDog extends AnimalSource {
 	constructor() {
 		super('random.dog')
 		this.filenames = [];
-
-		const localFilenames = localStorage.getItem('urag-' + this.id);
-		if (localFilenames) this.filenames = JSON.parse(localFilenames);
 	}
 
 	async fetchRandomImage() {
 		if (!this.filenames.length) {
 			this.filenames = await fetch('https://random.dog/doggos').then(response => response.json())
-			localStorage.setItem('urag-' + this.id, JSON.stringify(this.filenames))
+			this.save();
 		}
 
 		let filename = '';
@@ -144,7 +150,7 @@ class RandomDog extends AnimalSource {
 }
 
 /** @type {AnimalSource[]} */
-const SOURCES = [RandomDuck, AxoltlAPI, ZooAnimalAPI, DogCEO, BunniesIO, RandomFox, FishWatch, RandomDog].map(Source => new Source());
+const SOURCES = [RandomDuck, AxoltlAPI, ZooAnimalAPI, DogCEO, BunniesIO, RandomFox, FishWatch, RandomDog].map(Source => new Source().load());
 
 function fetchRandomImage() {
 	const selectedID = SOURCE_SELECT.value;
