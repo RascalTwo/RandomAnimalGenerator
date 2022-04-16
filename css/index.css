@@ -2,6 +2,9 @@ body {
 	background-color: black;
 	color: white;
 	text-align: center;
+	display: flex;
+	flex-direction: column;
+	height: 100vh;
 }
 
 fieldset {
@@ -22,4 +25,10 @@ select {
 
 button {
 	justify-self: end;
+}
+
+img {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
 }
