@@ -1,18 +1,63 @@
 const IMG = document.querySelector('img');
 const FETCH_BUTTON = document.querySelector('button');
 
-const URLS = [
-	'https://api.codetabs.com/v1/proxy?quest=https://axoltlapi.herokuapp.com/',
-	'https://api.codetabs.com/v1/proxy?quest=https://random-d.uk/api/v2/random'
-]
+class AnimalSource {
+	constructor(id) {
+		this.id = id;
+	}
 
-function fetchRandomImage(){
-	const url = URLS[Math.floor(Math.random() * URLS.length)]
-	return fetch(url)
-		.then(response => response.json())
-		.then(data => {
-			IMG.src = data.url
-		})
+	fetchRandomImage() {
+		throw new Error('Not Yet Implemented')
+	}
+}
+
+class RandomDuck extends AnimalSource {
+	constructor() {
+		super('random-duck')
+	}
+
+	fetchRandomImage() {
+		return fetch('https://api.codetabs.com/v1/proxy?quest=https://random-d.uk/api/v2/random')
+			.then(response => response.json())
+			.then(data => {
+				IMG.src = data.url
+			})
+	}
+}
+
+class AxoltlAPI extends AnimalSource {
+	constructor() {
+		super('axoltlapi')
+	}
+
+	fetchRandomImage() {
+		return fetch('https://api.codetabs.com/v1/proxy?quest=https://axoltlapi.herokuapp.com/')
+			.then(response => response.json())
+			.then(data => {
+				IMG.src = data.url
+			})
+	}
+}
+
+class ZooAnimalAPI extends AnimalSource {
+	constructor() {
+		super('zoo-animal-api')
+	}
+
+	fetchRandomImage() {
+		return fetch('https://zoo-animal-api.herokuapp.com/animals/rand')
+			.then(response => response.json())
+			.then(data => {
+				IMG.src = data.image_link
+			})
+	}
+}
+
+const SOURCES = [RandomDuck, AxoltlAPI, ZooAnimalAPI]
+
+function fetchRandomImage() {
+	const source = SOURCES[Math.floor(Math.random() * SOURCES.length)]
+	return new source().fetchRandomImage();
 }
 
 FETCH_BUTTON.addEventListener('click', () => fetchRandomImage())
