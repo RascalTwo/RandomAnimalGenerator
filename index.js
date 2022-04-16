@@ -96,7 +96,25 @@ class RandomFox extends AnimalSource {
 	}
 }
 
-const SOURCES = [RandomDuck, AxoltlAPI, ZooAnimalAPI, DogCEO, BunniesIO, RandomFox]
+class FishWatch extends AnimalSource {
+	constructor() {
+		super('fishwatch')
+	}
+
+	fetchRandomImage() {
+		return fetch('https://api.codetabs.com/v1/proxy?quest=https://www.fishwatch.gov/api/species')
+			.then(response => response.json())
+			.then(data => {
+				const fish = data[Math.floor(Math.random() * data.length)]
+				const images = fish['Image Gallery'];
+				images.push(fish['Species Illustration Photo']);
+				const image = images[Math.floor(Math.random() * images.length)]
+				IMG.src = image.src;
+			})
+	}
+}
+
+const SOURCES = [RandomDuck, AxoltlAPI, ZooAnimalAPI, DogCEO, BunniesIO, RandomFox, FishWatch]
 
 function fetchRandomImage() {
 	const selectedID = SOURCE_SELECT.value;
