@@ -87,13 +87,9 @@ const SOURCES = [RandomDuck, AxoltlAPI, ZooAnimalAPI, DogCEO, BunniesIO]
 function fetchRandomImage() {
 	const selectedID = SOURCE_SELECT.value;
 
-	let source;
-	if (selectedID) {
-		source = SOURCES.find(source => new source().id === selectedID)
-	}
-	else {
-		source = SOURCES[Math.floor(Math.random() * SOURCES.length)]
-	}
+	const source = selectedID
+		? SOURCES.find(source => new source().id === selectedID)
+		: SOURCES[Math.floor(Math.random() * SOURCES.length)];
 
 	return new source().fetchRandomImage();
 }
