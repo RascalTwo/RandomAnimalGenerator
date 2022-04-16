@@ -196,9 +196,21 @@ class Shibe extends AnimalSource {
 	}
 }
 
+class SomeRandomAPI extends AnimalSource {
+	constructor() {
+		super('some-random-api', 'Some Random API', 'Kangaroo', 'Raccoon', 'Bird', 'Koala', 'Red Panda', 'Fox', 'Panda', 'Cat', 'Dog')
+	}
+
+	fetchRandomImage(species) {
+		return fetch('https://some-random-api.ml/animal/' + species.toLowerCase().replaceAll(' ', '_'))
+			.then(response => response.json())
+			.then(data => data.image)
+	}
+}
+
 
 /** @type {AnimalSource[]} */
-const SOURCES = [RandomDuck, AxoltlAPI, ZooAnimalAPI, DogCEO, BunniesIO, RandomFox, FishWatch, RandomDog, ElephantAPI, TheCatAPI, Shibe].map(Source => new Source().load());
+const SOURCES = [RandomDuck, AxoltlAPI, ZooAnimalAPI, DogCEO, BunniesIO, RandomFox, FishWatch, RandomDog, ElephantAPI, TheCatAPI, Shibe, SomeRandomAPI].map(Source => new Source().load());
 
 function fetchRandomImage() {
 	FIELDSET.disabled = true;
