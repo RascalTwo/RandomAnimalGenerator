@@ -1,3 +1,25 @@
 body {
 	background-color: black;
+	color: white;
+	text-align: center;
+}
+
+fieldset {
+	width: max-content;
+	margin: auto;
+	display: flex;
+	align-items: flex-end;
+	gap: 1rem;
+}
+
+legend {
+	margin: auto;
+}
+
+select {
+	width: 100%;
+}
+
+button {
+	justify-self: end;
 }
