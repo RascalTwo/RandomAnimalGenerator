@@ -115,8 +115,28 @@ class FishWatch extends AnimalSource {
 	}
 }
 
+class RandomDog extends AnimalSource {
+	constructor() {
+		super('random.dog')
+		this.filenames = [];
+	}
+
+	async fetchRandomImage() {
+		if (!this.filenames.length) {
+			this.filenames = await fetch('https://random.dog/doggos').then(response => response.json())
+		}
+
+		let filename = '';
+		do {
+			filename = this.filenames[Math.floor(Math.random() * this.filenames.length)]
+		} while(filename.endsWith('.mp4'));
+
+		IMG.src = 'https://random.dog/' + filename;
+	}
+}
+
 /** @type {AnimalSource[]} */
-const SOURCES = [RandomDuck, AxoltlAPI, ZooAnimalAPI, DogCEO, BunniesIO, RandomFox, FishWatch].map(Source => new Source());
+const SOURCES = [RandomDuck, AxoltlAPI, ZooAnimalAPI, DogCEO, BunniesIO, RandomFox, FishWatch, RandomDog].map(Source => new Source());
 
 function fetchRandomImage() {
 	const selectedID = SOURCE_SELECT.value;
