@@ -99,42 +99,42 @@ class RandomFox extends AnimalSource {
 class FishWatch extends AnimalSource {
 	constructor() {
 		super('fishwatch')
+		this.fishes = [];
 	}
 
-	fetchRandomImage() {
-		return fetch('https://api.codetabs.com/v1/proxy?quest=https://www.fishwatch.gov/api/species')
-			.then(response => response.json())
-			.then(data => {
-				const fish = data[Math.floor(Math.random() * data.length)]
-				const images = fish['Image Gallery'];
-				images.push(fish['Species Illustration Photo']);
-				const image = images[Math.floor(Math.random() * images.length)]
-				IMG.src = image.src;
-			})
+	async fetchRandomImage() {
+		if (!this.fishes.length) {
+			this.fishes = await fetch('https://api.codetabs.com/v1/proxy?quest=https://www.fishwatch.gov/api/species').then(response => response.json())
+		}
+
+		const fish = this.fishes[Math.floor(Math.random() * this.fishes.length)]
+		const images = fish['Image Gallery'];
+		images.push(fish['Species Illustration Photo']);
+		const image = images[Math.floor(Math.random() * images.length)]
+		IMG.src = image.src;
 	}
 }
 
-const SOURCES = [RandomDuck, AxoltlAPI, ZooAnimalAPI, DogCEO, BunniesIO, RandomFox, FishWatch]
+/** @type {AnimalSource[]} */
+const SOURCES = [RandomDuck, AxoltlAPI, ZooAnimalAPI, DogCEO, BunniesIO, RandomFox, FishWatch].map(Source => new Source());
 
 function fetchRandomImage() {
 	const selectedID = SOURCE_SELECT.value;
 
 	const source = selectedID
-		? SOURCES.find(source => new source().id === selectedID)
+		? SOURCES.find(source => source.id === selectedID)
 		: SOURCES[Math.floor(Math.random() * SOURCES.length)];
 
-	return new source().fetchRandomImage();
+	return source.fetchRandomImage();
 }
 
 FETCH_BUTTON.addEventListener('click', () => fetchRandomImage())
 
 
 for (const source of SOURCES) {
-	const instance = new source();
-
 	const option = document.createElement('option')
-	option.value = instance.id
-	option.textContent = instance.id
+	option.value = source.id
+	option.textContent = source.id
 
 	SOURCE_SELECT.appendChild(option);
 }
