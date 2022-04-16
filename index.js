@@ -53,7 +53,21 @@ class ZooAnimalAPI extends AnimalSource {
 	}
 }
 
-const SOURCES = [RandomDuck, AxoltlAPI, ZooAnimalAPI]
+class DogCEO extends AnimalSource {
+	constructor() {
+		super('dog-ceo')
+	}
+
+	fetchRandomImage() {
+		return fetch('https://dog.ceo/api/breeds/image/random')
+			.then(response => response.json())
+			.then(data => {
+				IMG.src = data.message
+			})
+	}
+}
+
+const SOURCES = [RandomDuck, AxoltlAPI, ZooAnimalAPI, DogCEO]
 
 function fetchRandomImage() {
 	const source = SOURCES[Math.floor(Math.random() * SOURCES.length)]
