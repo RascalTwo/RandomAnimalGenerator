@@ -7,6 +7,13 @@ body {
 	height: 100vh;
 }
 
+@media (prefers-color-scheme: light) {
+	body {
+		background-color: white;
+		color: black;
+	}
+}
+
 fieldset {
 	width: max-content;
 	margin: 0 auto;
