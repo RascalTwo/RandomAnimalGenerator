@@ -1,6 +1,7 @@
 const IMG = document.querySelector('img');
 const FETCH_BUTTON = document.querySelector('button');
 const SOURCE_SELECT = document.querySelector('#sources');
+const FIELDSET = document.querySelector('fieldset');
 
 class AnimalSource {
 	constructor(id, name) {
@@ -212,13 +213,16 @@ class Shibe extends AnimalSource {
 const SOURCES = [RandomDuck, AxoltlAPI, ZooAnimalAPI, DogCEO, BunniesIO, RandomFox, FishWatch, RandomDog, ElephantAPI, TheCatAPI, Shibe].map(Source => new Source().load());
 
 function fetchRandomImage() {
+	FIELDSET.disabled = true;
 	const selectedID = SOURCE_SELECT.value;
 
 	const source = selectedID
 		? SOURCES.find(source => source.id === selectedID)
 		: SOURCES[Math.floor(Math.random() * SOURCES.length)];
 
-	return source.fetchRandomImage();
+	return source.fetchRandomImage().catch(err => alert(err.message)).then(() => {
+		FIELDSET.disabled = false;
+	})
 }
 
 FETCH_BUTTON.addEventListener('click', () => fetchRandomImage())
