@@ -3,8 +3,9 @@ const FETCH_BUTTON = document.querySelector('button');
 const SOURCE_SELECT = document.querySelector('#sources');
 
 class AnimalSource {
-	constructor(id) {
+	constructor(id, name) {
 		this.id = id;
+		this.name = name;
 		this.lastSaved = 0;
 	}
 
@@ -32,7 +33,7 @@ class AnimalSource {
 
 class RandomDuck extends AnimalSource {
 	constructor() {
-		super('random-duck')
+		super('random-duck', 'Random Duck')
 	}
 
 	fetchRandomImage() {
@@ -46,7 +47,7 @@ class RandomDuck extends AnimalSource {
 
 class AxoltlAPI extends AnimalSource {
 	constructor() {
-		super('axoltlapi')
+		super('axoltlapi', 'Axoltl API')
 	}
 
 	fetchRandomImage() {
@@ -60,7 +61,7 @@ class AxoltlAPI extends AnimalSource {
 
 class ZooAnimalAPI extends AnimalSource {
 	constructor() {
-		super('zoo-animal-api')
+		super('zoo-animal-api', 'Zoo Animal API')
 	}
 
 	fetchRandomImage() {
@@ -74,7 +75,7 @@ class ZooAnimalAPI extends AnimalSource {
 
 class DogCEO extends AnimalSource {
 	constructor() {
-		super('dog-ceo')
+		super('dog-ceo', 'Dog CEO')
 	}
 
 	fetchRandomImage() {
@@ -88,7 +89,7 @@ class DogCEO extends AnimalSource {
 
 class BunniesIO extends AnimalSource {
 	constructor() {
-		super('bunnies-io')
+		super('bunnies-io', 'Bunnies IO')
 	}
 
 	fetchRandomImage() {
@@ -102,7 +103,7 @@ class BunniesIO extends AnimalSource {
 
 class RandomFox extends AnimalSource {
 	constructor() {
-		super('randomfox')
+		super('randomfox', 'Random Fox')
 	}
 
 	fetchRandomImage() {
@@ -116,7 +117,7 @@ class RandomFox extends AnimalSource {
 
 class FishWatch extends AnimalSource {
 	constructor() {
-		super('fishwatch')
+		super('fishwatch', 'Fish Watch')
 		this.fishes = [];
 	}
 
@@ -136,7 +137,7 @@ class FishWatch extends AnimalSource {
 
 class RandomDog extends AnimalSource {
 	constructor() {
-		super('random.dog')
+		super('random.dog', 'Random Dog')
 		this.filenames = [];
 	}
 
@@ -157,7 +158,7 @@ class RandomDog extends AnimalSource {
 
 class ElephantAPI extends AnimalSource {
 	constructor() {
-		super('elephant-api')
+		super('elephant-api', 'Elephant API')
 		this.filenames = [];
 	}
 
@@ -180,7 +181,7 @@ class ElephantAPI extends AnimalSource {
 
 class TheCatAPI extends AnimalSource {
 	constructor() {
-		super('thecatapi')
+		super('thecatapi', 'The Cat API')
 	}
 
 	fetchRandomImage() {
@@ -194,7 +195,7 @@ class TheCatAPI extends AnimalSource {
 
 class Shibe extends AnimalSource {
 	constructor() {
-		super('shibe')
+		super('shibe', 'Shibe')
 	}
 
 	fetchRandomImage() {
@@ -226,7 +227,7 @@ FETCH_BUTTON.addEventListener('click', () => fetchRandomImage())
 for (const source of SOURCES) {
 	const option = document.createElement('option')
 	option.value = source.id
-	option.textContent = source.id
+	option.textContent = source.name
 
 	SOURCE_SELECT.appendChild(option);
 }
