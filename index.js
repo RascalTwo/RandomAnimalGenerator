@@ -40,9 +40,7 @@ class RandomDuck extends AnimalSource {
 	fetchRandomImage() {
 		return fetch('https://api.codetabs.com/v1/proxy?quest=https://random-d.uk/api/v2/random')
 			.then(response => response.json())
-			.then(data => {
-				IMG.src = data.url
-			})
+			.then(data => data.url)
 	}
 }
 
@@ -54,9 +52,7 @@ class AxoltlAPI extends AnimalSource {
 	fetchRandomImage() {
 		return fetch('https://api.codetabs.com/v1/proxy?quest=https://axoltlapi.herokuapp.com/')
 			.then(response => response.json())
-			.then(data => {
-				IMG.src = data.url
-			})
+			.then(data => data.url)
 	}
 }
 
@@ -68,9 +64,7 @@ class ZooAnimalAPI extends AnimalSource {
 	fetchRandomImage() {
 		return fetch('https://zoo-animal-api.herokuapp.com/animals/rand')
 			.then(response => response.json())
-			.then(data => {
-				IMG.src = data.image_link
-			})
+			.then(data => data.image_link)
 	}
 }
 
@@ -82,9 +76,7 @@ class DogCEO extends AnimalSource {
 	fetchRandomImage() {
 		return fetch('https://dog.ceo/api/breeds/image/random')
 			.then(response => response.json())
-			.then(data => {
-				IMG.src = data.message
-			})
+			.then(data => data.message)
 	}
 }
 
@@ -96,9 +88,7 @@ class BunniesIO extends AnimalSource {
 	fetchRandomImage() {
 		return fetch('https://api.bunnies.io/v2/loop/random/?media=mp4,av1')
 			.then(response => response.json())
-			.then(data => {
-				IMG.src = data.media.poster
-			})
+			.then(data => data.media.poster)
 	}
 }
 
@@ -110,9 +100,7 @@ class RandomFox extends AnimalSource {
 	fetchRandomImage() {
 		return fetch('https://randomfox.ca/floof/')
 			.then(response => response.json())
-			.then(data => {
-				IMG.src = data.image
-			})
+			.then(data => data.image)
 	}
 }
 
@@ -132,7 +120,7 @@ class FishWatch extends AnimalSource {
 		const images = fish['Image Gallery'];
 		images.push(fish['Species Illustration Photo']);
 		const image = images[Math.floor(Math.random() * images.length)]
-		IMG.src = image.src;
+		return image.src;
 	}
 }
 
@@ -151,9 +139,9 @@ class RandomDog extends AnimalSource {
 		let filename = '';
 		do {
 			filename = this.filenames[Math.floor(Math.random() * this.filenames.length)]
-		} while(filename.endsWith('.mp4'));
+		} while (filename.endsWith('.mp4'));
 
-		IMG.src = 'https://random.dog/' + filename;
+		return 'https://random.dog/' + filename;
 	}
 }
 
@@ -176,7 +164,7 @@ class ElephantAPI extends AnimalSource {
 		}
 
 		const filename = this.filenames[Math.floor(Math.random() * this.filenames.length)]
-		IMG.src = 'https://elephant-api.herokuapp.com/pictures/' + filename;
+		return 'https://elephant-api.herokuapp.com/pictures/' + filename;
 	}
 }
 
@@ -188,9 +176,7 @@ class TheCatAPI extends AnimalSource {
 	fetchRandomImage() {
 		return fetch('https://api.thecatapi.com/v1/images/search')
 			.then(response => response.json())
-			.then(data => {
-				IMG.src = data[0].url
-			})
+			.then(data => data[0].url)
 	}
 }
 
@@ -202,9 +188,7 @@ class Shibe extends AnimalSource {
 	fetchRandomImage() {
 		return fetch('https://api.codetabs.com/v1/proxy?quest=http://shibe.online/api/shibes?count=1&urls=true')
 			.then(response => response.json())
-			.then(data => {
-				IMG.src = data[0]
-			})
+			.then(data => data[0])
 	}
 }
 
@@ -220,9 +204,17 @@ function fetchRandomImage() {
 		? SOURCES.find(source => source.id === selectedID)
 		: SOURCES[Math.floor(Math.random() * SOURCES.length)];
 
-	return source.fetchRandomImage().catch(err => alert(err.message)).then(() => {
-		FIELDSET.disabled = false;
-	})
+	return source.fetchRandomImage()
+		.catch(err => alert(err.message))
+		.then((url) => new Promise((resolve, reject) => {
+			IMG.addEventListener('load', resolve, { once: true })
+			IMG.addEventListener('error', () => reject(new Error('Image failed to load')), { once: true })
+			IMG.src = url;
+		}))
+		.catch(err => alert(err.message))
+		.then(() => {
+			FIELDSET.disabled = false;
+		})
 }
 
 FETCH_BUTTON.addEventListener('click', () => fetchRandomImage())
