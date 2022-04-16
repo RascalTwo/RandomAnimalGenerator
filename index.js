@@ -1,13 +1,15 @@
 const IMG = document.querySelector('img');
 const FETCH_BUTTON = document.querySelector('button');
 const SOURCE_SELECT = document.querySelector('#sources');
+const SPECIES_SELECT = document.querySelector('#species');
 const FIELDSET = document.querySelector('fieldset');
 
 class AnimalSource {
-	constructor(id, name) {
+	constructor(id, name, ...species) {
 		this.id = id;
 		this.name = name;
 		this.lastSaved = 0;
+		this.species = species
 	}
 
 	isStale() {
@@ -34,7 +36,7 @@ class AnimalSource {
 
 class RandomDuck extends AnimalSource {
 	constructor() {
-		super('random-duck', 'Random Duck')
+		super('random-duck', 'Random Duck', 'Bird')
 	}
 
 	fetchRandomImage() {
@@ -46,7 +48,7 @@ class RandomDuck extends AnimalSource {
 
 class AxoltlAPI extends AnimalSource {
 	constructor() {
-		super('axoltlapi', 'Axoltl API')
+		super('axoltlapi', 'Axoltl API', 'Axolotl')
 	}
 
 	fetchRandomImage() {
@@ -70,7 +72,7 @@ class ZooAnimalAPI extends AnimalSource {
 
 class DogCEO extends AnimalSource {
 	constructor() {
-		super('dog-ceo', 'Dog CEO')
+		super('dog-ceo', 'Dog CEO', 'Dog')
 	}
 
 	fetchRandomImage() {
@@ -82,7 +84,7 @@ class DogCEO extends AnimalSource {
 
 class BunniesIO extends AnimalSource {
 	constructor() {
-		super('bunnies-io', 'Bunnies IO')
+		super('bunnies-io', 'Bunnies IO', 'Bunny')
 	}
 
 	fetchRandomImage() {
@@ -94,7 +96,7 @@ class BunniesIO extends AnimalSource {
 
 class RandomFox extends AnimalSource {
 	constructor() {
-		super('randomfox', 'Random Fox')
+		super('randomfox', 'Random Fox', 'Fox')
 	}
 
 	fetchRandomImage() {
@@ -106,7 +108,7 @@ class RandomFox extends AnimalSource {
 
 class FishWatch extends AnimalSource {
 	constructor() {
-		super('fishwatch', 'Fish Watch')
+		super('fishwatch', 'Fish Watch', 'Fish')
 		this.fishes = [];
 	}
 
@@ -126,7 +128,7 @@ class FishWatch extends AnimalSource {
 
 class RandomDog extends AnimalSource {
 	constructor() {
-		super('random.dog', 'Random Dog')
+		super('random.dog', 'Random Dog', 'Dog')
 		this.filenames = [];
 	}
 
@@ -147,7 +149,7 @@ class RandomDog extends AnimalSource {
 
 class ElephantAPI extends AnimalSource {
 	constructor() {
-		super('elephant-api', 'Elephant API')
+		super('elephant-api', 'Elephant API', 'Elephant')
 		this.filenames = [];
 	}
 
@@ -170,7 +172,7 @@ class ElephantAPI extends AnimalSource {
 
 class TheCatAPI extends AnimalSource {
 	constructor() {
-		super('thecatapi', 'The Cat API')
+		super('thecatapi', 'The Cat API', 'Cat')
 	}
 
 	fetchRandomImage() {
@@ -182,11 +184,13 @@ class TheCatAPI extends AnimalSource {
 
 class Shibe extends AnimalSource {
 	constructor() {
-		super('shibe', 'Shibe')
+		super('shibe', 'Shibe', 'Dog', 'Cat', 'Bird')
 	}
 
-	fetchRandomImage() {
-		return fetch('https://api.codetabs.com/v1/proxy?quest=http://shibe.online/api/shibes?count=1&urls=true')
+	fetchRandomImage(species) {
+		if (species === 'Dog') species = 'Shibe'
+
+		return fetch(`https://api.codetabs.com/v1/proxy?quest=http://shibe.online/api/${species.toLowerCase()}s?count=1&urls=true`)
 			.then(response => response.json())
 			.then(data => data[0])
 	}
@@ -199,12 +203,17 @@ const SOURCES = [RandomDuck, AxoltlAPI, ZooAnimalAPI, DogCEO, BunniesIO, RandomF
 function fetchRandomImage() {
 	FIELDSET.disabled = true;
 	const selectedID = SOURCE_SELECT.value;
+	const selectedSpecies = SPECIES_SELECT.value;
+
+	const possibleSources = selectedSpecies
+		? SOURCES.filter(source => source.species.includes(selectedSpecies))
+		: SOURCES;
 
 	const source = selectedID
-		? SOURCES.find(source => source.id === selectedID)
-		: SOURCES[Math.floor(Math.random() * SOURCES.length)];
+		? possibleSources.find(source => source.id === selectedID)
+		: possibleSources[Math.floor(Math.random() * possibleSources.length)];
 
-	return source.fetchRandomImage()
+	return source.fetchRandomImage(source.species[Math.floor(Math.random() * source.species.length)])
 		.catch(err => alert(err.message))
 		.then((url) => new Promise((resolve, reject) => {
 			IMG.addEventListener('load', resolve, { once: true })
@@ -227,3 +236,50 @@ for (const source of SOURCES) {
 
 	SOURCE_SELECT.appendChild(option);
 }
+
+function renderSpecies() {
+	const selectedSource = SOURCE_SELECT.value;
+	const sources = selectedSource
+		? [SOURCES.find(source => source.id === selectedSource)]
+		: SOURCES
+
+	const oldValue = SPECIES_SELECT.value;
+
+	while (SPECIES_SELECT.childElementCount > 1) SPECIES_SELECT.children[1].remove()
+
+	for (const species of [...new Set(sources.flatMap(source => source.species))]) {
+		const option = document.createElement('option')
+		option.textContent = species
+
+		SPECIES_SELECT.appendChild(option);
+	}
+
+	SPECIES_SELECT.value = oldValue;
+	if (!SPECIES_SELECT.value) SPECIES_SELECT.value = '';
+}
+
+function renderSources() {
+	const species = SPECIES_SELECT.value;
+
+	const oldValue = SOURCE_SELECT.value;
+
+	while (SOURCE_SELECT.childElementCount > 1) SOURCE_SELECT.children[1].remove()
+
+	for (const source of SOURCES) {
+		if (species && !source.species.includes(species)) continue
+		const option = document.createElement('option')
+		option.value = source.id
+		option.textContent = source.name
+
+		SOURCE_SELECT.appendChild(option);
+	}
+
+	SOURCE_SELECT.value = oldValue;
+	if (!SOURCE_SELECT.value) SOURCE_SELECT.value = '';
+}
+
+SPECIES_SELECT.addEventListener('change', renderSources);
+SOURCE_SELECT.addEventListener('change', renderSpecies);
+
+renderSources()
+renderSpecies()
