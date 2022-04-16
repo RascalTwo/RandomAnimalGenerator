@@ -9,8 +9,7 @@ class AnimalSource {
 	}
 
 	isStale(){
-		const diff = Date.now() - this.lastSaved;
-		return diff > 86400000;
+		return Date.now() - this.lastSaved > 86400000;
 	}
 
 	load(){
