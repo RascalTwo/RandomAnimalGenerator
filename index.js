@@ -82,7 +82,21 @@ class BunniesIO extends AnimalSource {
 	}
 }
 
-const SOURCES = [RandomDuck, AxoltlAPI, ZooAnimalAPI, DogCEO, BunniesIO]
+class RandomFox extends AnimalSource {
+	constructor() {
+		super('randomfox')
+	}
+
+	fetchRandomImage() {
+		return fetch('https://randomfox.ca/floof/')
+			.then(response => response.json())
+			.then(data => {
+				IMG.src = data.image
+			})
+	}
+}
+
+const SOURCES = [RandomDuck, AxoltlAPI, ZooAnimalAPI, DogCEO, BunniesIO, RandomFox]
 
 function fetchRandomImage() {
 	const selectedID = SOURCE_SELECT.value;
