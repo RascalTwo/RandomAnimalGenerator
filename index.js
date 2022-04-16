@@ -100,11 +100,15 @@ class FishWatch extends AnimalSource {
 	constructor() {
 		super('fishwatch')
 		this.fishes = [];
+
+		const localFishes = localStorage.getItem('urag-' + this.id);
+		if (localFishes) this.fishes = JSON.parse(localFishes);
 	}
 
 	async fetchRandomImage() {
 		if (!this.fishes.length) {
 			this.fishes = await fetch('https://api.codetabs.com/v1/proxy?quest=https://www.fishwatch.gov/api/species').then(response => response.json())
+			localStorage.setItem('urag-' + this.id, JSON.stringify(this.fishes))
 		}
 
 		const fish = this.fishes[Math.floor(Math.random() * this.fishes.length)]
@@ -119,11 +123,15 @@ class RandomDog extends AnimalSource {
 	constructor() {
 		super('random.dog')
 		this.filenames = [];
+
+		const localFilenames = localStorage.getItem('urag-' + this.id);
+		if (localFilenames) this.filenames = JSON.parse(localFilenames);
 	}
 
 	async fetchRandomImage() {
 		if (!this.filenames.length) {
 			this.filenames = await fetch('https://random.dog/doggos').then(response => response.json())
+			localStorage.setItem('urag-' + this.id, JSON.stringify(this.filenames))
 		}
 
 		let filename = '';
