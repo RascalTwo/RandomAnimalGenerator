@@ -273,6 +273,10 @@ function renderSpecies() {
 
 	SPECIES_SELECT.value = oldValue;
 	if (!SPECIES_SELECT.value) SPECIES_SELECT.value = '';
+
+	const params = new URLSearchParams(window.location.hash.slice(1))
+	params.set('select-source', selectedSource)
+	history.pushState(null, null, window.location.pathname + '#' + params.toString())
 }
 
 function renderSources() {
@@ -293,17 +297,36 @@ function renderSources() {
 
 	SOURCE_SELECT.value = oldValue;
 	if (!SOURCE_SELECT.value) SOURCE_SELECT.value = '';
+
+	const params = new URLSearchParams(window.location.hash.slice(1))
+	params.set('select-species', species)
+	history.pushState(null, null, window.location.pathname + '#' + params.toString())
 }
 
 SPECIES_SELECT.addEventListener('change', renderSources);
 SOURCE_SELECT.addEventListener('change', renderSpecies);
 
-renderSources()
-renderSpecies()
 
-
-IMG_COUNT.addEventListener('change', ({ target: { value } }) => {
+function onCountUpdate({ target: { value } }) {
 	const count = +value;
 	IMG.forEach((img, i) => img.classList.toggle('hidden', i >= count))
 	document.querySelector('#image-container').style.setProperty('--columns', Math.ceil(count / 2))
-})
+	const params = new URLSearchParams(window.location.hash.slice(1))
+	params.set('count', count)
+	history.pushState(null, null, window.location.pathname + '#' + params.toString())
+}
+
+IMG_COUNT.addEventListener('change', onCountUpdate)
+
+
+const params = new URLSearchParams(window.location.hash.slice(1))
+renderSources();
+renderSpecies();
+SPECIES_SELECT.value = params.get('select-species') || '';
+SOURCE_SELECT.value = params.get('select-source') || '';
+renderSources();
+renderSpecies();
+
+
+IMG_COUNT.value = +(params.get('count') || '1')
+onCountUpdate({ target: IMG_COUNT })
