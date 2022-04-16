@@ -178,8 +178,22 @@ class ElephantAPI extends AnimalSource {
 	}
 }
 
+class TheCatAPI extends AnimalSource {
+	constructor() {
+		super('thecatapi')
+	}
+
+	fetchRandomImage() {
+		return fetch('https://api.thecatapi.com/v1/images/search')
+			.then(response => response.json())
+			.then(data => {
+				IMG.src = data[0].url
+			})
+	}
+}
+
 /** @type {AnimalSource[]} */
-const SOURCES = [RandomDuck, AxoltlAPI, ZooAnimalAPI, DogCEO, BunniesIO, RandomFox, FishWatch, RandomDog, ElephantAPI].map(Source => new Source().load());
+const SOURCES = [RandomDuck, AxoltlAPI, ZooAnimalAPI, DogCEO, BunniesIO, RandomFox, FishWatch, RandomDog, ElephantAPI, TheCatAPI].map(Source => new Source().load());
 
 function fetchRandomImage() {
 	const selectedID = SOURCE_SELECT.value;
