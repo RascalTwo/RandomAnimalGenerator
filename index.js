@@ -10,11 +10,11 @@ class AnimalSource {
 		this.lastSaved = 0;
 	}
 
-	isStale(){
+	isStale() {
 		return Date.now() - this.lastSaved > 86400000;
 	}
 
-	load(){
+	load() {
 		const localData = localStorage.getItem('urag-' + this.id);
 		if (!localData) return this;
 		Object.assign(this, JSON.parse(localData));
@@ -22,7 +22,7 @@ class AnimalSource {
 		return this;
 	}
 
-	save(){
+	save() {
 		this.lastSaved = Date.now();
 		localStorage.setItem('urag-' + this.id, JSON.stringify(this))
 	}
