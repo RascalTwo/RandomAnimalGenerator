@@ -192,8 +192,23 @@ class TheCatAPI extends AnimalSource {
 	}
 }
 
+class Shibe extends AnimalSource {
+	constructor() {
+		super('shibe')
+	}
+
+	fetchRandomImage() {
+		return fetch('https://api.codetabs.com/v1/proxy?quest=http://shibe.online/api/shibes?count=1&urls=true')
+			.then(response => response.json())
+			.then(data => {
+				IMG.src = data[0]
+			})
+	}
+}
+
+
 /** @type {AnimalSource[]} */
-const SOURCES = [RandomDuck, AxoltlAPI, ZooAnimalAPI, DogCEO, BunniesIO, RandomFox, FishWatch, RandomDog, ElephantAPI, TheCatAPI].map(Source => new Source().load());
+const SOURCES = [RandomDuck, AxoltlAPI, ZooAnimalAPI, DogCEO, BunniesIO, RandomFox, FishWatch, RandomDog, ElephantAPI, TheCatAPI, Shibe].map(Source => new Source().load());
 
 function fetchRandomImage() {
 	const selectedID = SOURCE_SELECT.value;
