@@ -155,8 +155,31 @@ class RandomDog extends AnimalSource {
 	}
 }
 
+class ElephantAPI extends AnimalSource {
+	constructor() {
+		super('elephant-api')
+		this.filenames = [];
+	}
+
+	async fetchRandomImage() {
+		if (this.isStale()) {
+			this.filenames = await fetch('https://api.codetabs.com/v1/proxy?quest=https://elephant-api.herokuapp.com/elephants')
+				.then(response => response.json())
+				.then(data =>
+					data.map(elephant => elephant.image)
+						.filter(url => url && url !== "https://elephant-api.herokuapp.com/pictures/missing.jpg")
+						.map(url => url.split('/').at(-1))
+				);
+			this.save();
+		}
+
+		const filename = this.filenames[Math.floor(Math.random() * this.filenames.length)]
+		IMG.src = 'https://elephant-api.herokuapp.com/pictures/' + filename;
+	}
+}
+
 /** @type {AnimalSource[]} */
-const SOURCES = [RandomDuck, AxoltlAPI, ZooAnimalAPI, DogCEO, BunniesIO, RandomFox, FishWatch, RandomDog].map(Source => new Source().load());
+const SOURCES = [RandomDuck, AxoltlAPI, ZooAnimalAPI, DogCEO, BunniesIO, RandomFox, FishWatch, RandomDog, ElephantAPI].map(Source => new Source().load());
 
 function fetchRandomImage() {
 	const selectedID = SOURCE_SELECT.value;
