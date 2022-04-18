@@ -14,7 +14,8 @@ class AnimalSource {
 	}
 
 	fetchCORS(url) {
-		return this.fetch('https://api.codetabs.com/v1/proxy?quest=' + url).then(response => response.json()).catch(() => {
+		return this.fetch('https://api.codetabs.com/v1/proxy?quest=' + url).catch((err) => {
+			console.log(err)
 			throw new Error('Likely being rate-limtied by CORs Proxy')
 		})
 	}
