@@ -9,8 +9,8 @@ class AnimalSource {
 	constructor(id, name, ...species) {
 		this.id = id;
 		this.name = name;
-		this.lastSaved = 0;
 		this.species = species
+		this.lastSaved = 0;
 	}
 
 	isStale() {
