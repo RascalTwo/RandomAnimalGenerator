@@ -148,6 +148,16 @@ class RandomDog extends AnimalSource {
 	}
 }
 
+class RandomCat extends AnimalSource {
+	constructor() {
+		super('random.cat', 'Random Cat', 'Cat')
+	}
+
+	async fetchRandomImage() {
+		return fetch('https://api.codetabs.com/v1/proxy?quest=https://aws.random.cat/meow').then(response => response.json()).then(data => data.file)
+	}
+}
+
 class ElephantAPI extends AnimalSource {
 	constructor() {
 		super('elephant-api', 'Elephant API', 'Elephant')
@@ -211,7 +221,7 @@ class SomeRandomAPI extends AnimalSource {
 
 
 /** @type {AnimalSource[]} */
-const SOURCES = [RandomDuck, AxoltlAPI, ZooAnimalAPI, DogCEO, BunniesIO, RandomFox, FishWatch, RandomDog, ElephantAPI, TheCatAPI, Shibe, SomeRandomAPI].map(Source => new Source().load());
+const SOURCES = [RandomDuck, AxoltlAPI, ZooAnimalAPI, DogCEO, BunniesIO, RandomFox, FishWatch, RandomDog, ElephantAPI, TheCatAPI, Shibe, SomeRandomAPI, RandomCat].map(Source => new Source().load());
 
 function fetchRandomImage(nth) {
 	const selectedID = SOURCE_SELECT.value;
