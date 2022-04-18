@@ -375,9 +375,11 @@ function fetchRandomImage(nth) {
 		.then(id => ({ id, species, sourceID: source.id }))
 }
 
-function setImageCount(count) {
-	IMG_COUNT.value = count
-	onCountUpdate({ target: IMG_COUNT })
+function updateLocationHash(values) {
+	const params = new URLSearchParams(window.location.hash.slice(1));
+	for (const key in values) params.delete(key);
+	for (const key in values) params.append(key, values[key]);
+	history.pushState(null, null, window.location.pathname + '#' + params.toString())
 }
 
 function* handleFormState() {
@@ -389,26 +391,6 @@ function* handleFormState() {
 	}
 }
 
-async function loadImagesFromURL() {
-	const hotlinkParams = new URLSearchParams(window.location.hash.slice(1));
-	const sources = hotlinkParams.getAll('sources')
-	const specieses = hotlinkParams.getAll('species')
-
-	const info = []
-	for (const [i, id] of hotlinkParams.getAll('ids').entries()) {
-		if (id != 'undefined') info.push({ id, sourceID: sources[i], species: specieses[i] })
-	}
-
-	if (!info.length) return;
-
-	for (const _ of handleFormState()) {
-		const waiting = []
-		if (info.length < +IMG_COUNT.value) setImageCount(info.length);
-		for (let i = 0; i < info.length; i++) waiting.push(handleImageFetching((async ({ id, sourceID, species }) => SOURCES.find(source => source.id === sourceID).fetchImageInfoByID(id, species)
-		)(info[i]), i));
-		await Promise.all(waiting);
-	}
-}
 
 FETCH_BUTTON.addEventListener('click', async () => {
 	for (const _ of handleFormState()) {
@@ -482,28 +464,53 @@ function renderSources() {
 SPECIES_SELECT.addEventListener('change', renderSources);
 SOURCE_SELECT.addEventListener('change', renderSpecies);
 
+const setImageCount = (() => {
+	function onCountUpdate({ target: { value } }) {
+		const count = +value;
 
-function onCountUpdate({ target: { value } }) {
-	const count = +value;
-	IMG.forEach((img, i) => img.classList.toggle('hidden', i >= count))
-	document.querySelector('#image-container').style.setProperty('--columns', Math.ceil(count / 2))
+		for (const [i, img] of IMG.entries()) img.classList.toggle('hidden', i >= count)
+		document.querySelector('#image-container').style.setProperty('--columns', Math.ceil(count / 2))
+
+		updateLocationHash({ count });
+	}
+
+	IMG_COUNT.addEventListener('change', onCountUpdate);
+
+	return function setImageCount(count) {
+		IMG_COUNT.value = count
+		onCountUpdate({ target: IMG_COUNT })
+	}
+})();
+
+
+
+(async () => {
 	const params = new URLSearchParams(window.location.hash.slice(1))
-	params.set('count', count)
-	history.pushState(null, null, window.location.pathname + '#' + params.toString())
-}
-
-IMG_COUNT.addEventListener('change', onCountUpdate)
-
-
-const params = new URLSearchParams(window.location.hash.slice(1))
-renderSources();
-renderSpecies();
-SPECIES_SELECT.value = params.get('select-species') || '';
-SOURCE_SELECT.value = params.get('select-source') || '';
-renderSources();
-renderSpecies();
+	renderSources();
+	renderSpecies();
+	SPECIES_SELECT.value = params.get('select-species') || '';
+	SOURCE_SELECT.value = params.get('select-source') || '';
+	renderSources();
+	renderSpecies();
 
 
-setImageCount(+(params.get('count') || '1'))
+	setImageCount(+(params.get('count') || '1'))
 
-loadImagesFromURL().catch(console.error)
+
+	const sources = params.getAll('sources')
+	const specieses = params.getAll('species')
+
+	const info = []
+	for (const [i, id] of params.getAll('ids').entries()) {
+		if (id != 'undefined') info.push({ id, sourceID: sources[i], species: specieses[i] })
+	}
+
+	if (!info.length) return;
+
+	for (const _ of handleFormState()) {
+		const waiting = []
+		if (info.length < +IMG_COUNT.value) setImageCount(info.length);
+		for (let i = 0; i < info.length; i++) waiting.push(handleImageFetching((async ({ id, sourceID, species }) => SOURCES.find(source => source.id === sourceID).fetchImageInfoByID(id, species))(info[i]), i));
+		await Promise.all(waiting);
+	}
+})().catch(console.error)
