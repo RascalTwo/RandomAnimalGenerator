@@ -370,7 +370,7 @@ function fetchRandomImage(nth) {
 		: possibleSources[Math.floor(Math.random() * possibleSources.length)];
 
 
-	const species = source.species[Math.floor(Math.random() * source.species.length)]
+	const species = selectedSpecies ? selectedSpecies : source.species[Math.floor(Math.random() * source.species.length)]
 	return handleImageFetching(source.fetchRandomImageInfo(species), nth)
 		.then(id => ({ id, species, sourceID: source.id }))
 }
