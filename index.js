@@ -14,10 +14,15 @@ class AnimalSource {
 	}
 
 	fetchCORS(url) {
-		return fetch('https://api.codetabs.com/v1/proxy?quest=' + url).then(response => response.json()).catch(() => {
+		return this.fetch('https://api.codetabs.com/v1/proxy?quest=' + url).then(response => response.json()).catch(() => {
 			throw new Error('Likely being rate-limtied by CORs Proxy')
 		})
 	}
+
+	fetch(url) {
+		return fetch(url).then(response => response.json())
+	}
+
 	isStale() {
 		return Date.now() - this.lastSaved > 86400000;
 	}
@@ -99,8 +104,7 @@ class ZooAnimalAPI extends AnimalSource {
 	}
 
 	fetchRandomImageInfo() {
-		return fetch('https://zoo-animal-api.herokuapp.com/animals/rand')
-			.then(response => response.json())
+		return this.fetch('https://zoo-animal-api.herokuapp.com/animals/rand')
 			.then(data => ({ id: data.image_link, imageURL: data.image_link }))
 	}
 }
@@ -111,8 +115,7 @@ class DogCEO extends AnimalSource {
 	}
 
 	fetchRandomImageInfo() {
-		return fetch('https://dog.ceo/api/breeds/image/random')
-			.then(response => response.json())
+		return this.fetch('https://dog.ceo/api/breeds/image/random')
 			.then(data => ({
 				imageURL: data.message,
 				id: data.message.split('/').slice(-2).join('/')
@@ -130,8 +133,7 @@ class BunniesIO extends AnimalSource {
 	}
 
 	fetchRandomImageInfo() {
-		return fetch('https://api.bunnies.io/v2/loop/random/?media=mp4,av1')
-			.then(response => response.json())
+		return this.fetch('https://api.bunnies.io/v2/loop/random/?media=poster')
 			.then(data => ({
 				id: data.id,
 				imageURL: data.media.poster
@@ -149,8 +151,7 @@ class RandomFox extends AnimalSource {
 	}
 
 	fetchRandomImageInfo() {
-		return fetch('https://randomfox.ca/floof/')
-			.then(response => response.json())
+		return this.fetch('https://randomfox.ca/floof/')
 			.then(data => ({
 				id: data.link.split('i=')[1],
 				imageURL: data.image
@@ -171,7 +172,7 @@ class FishWatch extends AnimalSource {
 	async prePopulate() {
 		if (!this.isStale()) return
 
-		this.fishes = await this.fetchCORS('https://www.fishwatch.gov/api/species').then(response => response.json())
+		this.fishes = await this.fetchCORS('https://www.fishwatch.gov/api/species')
 		this.save();
 	}
 
@@ -188,7 +189,6 @@ class FishWatch extends AnimalSource {
 		const images = this.getFishImages(this.fishes[fishIndex]);
 		const imageIndex = Math.floor(Math.random() * images.length)
 		const image = images[imageIndex]
-		// TODO - use fish id
 		return {
 			id: fishIndex + '-' + imageIndex,
 			imageURL: image.src
@@ -212,7 +212,7 @@ class RandomDog extends AnimalSource {
 	async prePopulate() {
 		if (!this.isStale()) return
 
-		this.filenames = await fetch('https://random.dog/doggos').then(response => response.json())
+		this.filenames = await this.fetch('https://random.dog/doggos')
 		this.save();
 	}
 
@@ -243,7 +243,7 @@ class RandomCat extends AnimalSource {
 	}
 
 	async fetchRandomImageInfo() {
-		return this.fetchCORS('https://aws.random.cat/meow').then(response => response.json()).then(data => ({
+		return this.fetchCORS('https://aws.random.cat/meow').then(data => ({
 			id: data.file,
 			imageURL: data.file
 		}))
@@ -260,7 +260,6 @@ class ElephantAPI extends AnimalSource {
 		if (!this.isStale()) return;
 
 		this.filenames = await this.fetchCORS('https://elephant-api.herokuapp.com/elephants')
-			.then(response => response.json())
 			.then(data =>
 				data.map(elephant => elephant.image)
 					.filter(url => url && url !== "https://elephant-api.herokuapp.com/pictures/missing.jpg")
@@ -288,8 +287,7 @@ class TheCatAPI extends AnimalSource {
 	}
 
 	fetchRandomImageInfo() {
-		return fetch('https://api.thecatapi.com/v1/images/search')
-			.then(response => response.json())
+		return this.fetch('https://api.thecatapi.com/v1/images/search')
 			.then(data => ({
 				id: data[0].url.split('/').at(-1),
 				imageURL: data[0].url
@@ -316,7 +314,6 @@ class Shibe extends AnimalSource {
 		species = this.normalizeSpecies(species)
 
 		return this.fetchCORS(`http://shibe.online/api/${species}s?count=1`)
-			.then(response => response.json())
 			.then(data => ({
 				id: data[0].split('/').at(-1).split('.')[0],
 				imageURL: data[0]
@@ -334,8 +331,7 @@ class SomeRandomAPI extends AnimalSource {
 	}
 
 	fetchRandomImageInfo(species) {
-		return fetch('https://some-random-api.ml/animal/' + species.toLowerCase().replaceAll(' ', '_'))
-			.then(response => response.json())
+		return this.fetch('https://some-random-api.ml/animal/' + species.toLowerCase().replaceAll(' ', '_'))
 			.then(data => ({
 				id: data.image,
 				imageURL: data.image
