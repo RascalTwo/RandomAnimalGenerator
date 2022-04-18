@@ -142,7 +142,7 @@ class BunniesIO extends AnimalSource {
 	}
 
 	fetchImageURLById(id) {
-		return 'https://bunnies.media/poster/' + id;
+		return 'https://bunnies.media/poster/' + id + '.png';
 	}
 }
 
