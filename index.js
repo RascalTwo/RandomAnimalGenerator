@@ -375,9 +375,18 @@ function fetchRandomImage(nth) {
 		.then(id => ({ id, species, sourceID: source.id }))
 }
 
-function setImageCount(count){
+function setImageCount(count) {
 	IMG_COUNT.value = count
 	onCountUpdate({ target: IMG_COUNT })
+}
+
+function* handleFormState() {
+	FIELDSET.disabled = true;
+	try {
+		yield
+	} finally {
+		FIELDSET.disabled = false;
+	}
 }
 
 async function loadImagesFromURL() {
@@ -392,37 +401,33 @@ async function loadImagesFromURL() {
 
 	if (!info.length) return;
 
-	FIELDSET.disabled = true;
-
-	const waiting = []
-	if (info.length < +IMG_COUNT.value) setImageCount(info.length);
-	for (let i = 0; i < info.length; i++) waiting.push(handleImageFetching((async ({ id, sourceID, species }) => SOURCES.find(source => source.id === sourceID).fetchImageInfoByID(id, species)
-	)(info[i]), i));
-	await Promise.all(waiting);
-
-	FIELDSET.disabled = false;
+	for (const _ of handleFormState()) {
+		const waiting = []
+		if (info.length < +IMG_COUNT.value) setImageCount(info.length);
+		for (let i = 0; i < info.length; i++) waiting.push(handleImageFetching((async ({ id, sourceID, species }) => SOURCES.find(source => source.id === sourceID).fetchImageInfoByID(id, species)
+		)(info[i]), i));
+		await Promise.all(waiting);
+	}
 }
 
 FETCH_BUTTON.addEventListener('click', async () => {
-	FIELDSET.disabled = true;
+	for (const _ of handleFormState()) {
+		const waiting = []
+		for (let i = 0; i < +IMG_COUNT.value; i++) waiting.push(fetchRandomImage(i))
+		const info = await Promise.all(waiting);
 
-	const waiting = []
-	for (let i = 0; i < +IMG_COUNT.value; i++) waiting.push(fetchRandomImage(i))
-	const info = await Promise.all(waiting);
-
-	const params = new URLSearchParams(window.location.hash.slice(1));
-	params.delete('ids')
-	params.delete('sources')
-	params.delete('species')
-	for (const { id, species, sourceID } of info) {
-		if (id === undefined) continue
-		params.append('ids', id);
-		params.append('sources', sourceID);
-		params.append('species', species);
+		const params = new URLSearchParams(window.location.hash.slice(1));
+		params.delete('ids')
+		params.delete('sources')
+		params.delete('species')
+		for (const { id, species, sourceID } of info) {
+			if (id === undefined) continue
+			params.append('ids', id);
+			params.append('sources', sourceID);
+			params.append('species', species);
+		}
+		history.pushState(null, null, window.location.pathname + '#' + params.toString())
 	}
-	history.pushState(null, null, window.location.pathname + '#' + params.toString())
-
-	FIELDSET.disabled = false;
 })
 
 function renderSpecies() {
