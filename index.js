@@ -13,6 +13,11 @@ class AnimalSource {
 		this.lastSaved = 0;
 	}
 
+	fetchCORS(url) {
+		return fetch('https://api.codetabs.com/v1/proxy?quest=' + url).then(response => response.json()).catch(() => {
+			throw new Error('Likely being rate-limtied by CORs Proxy')
+		})
+	}
 	isStale() {
 		return Date.now() - this.lastSaved > 86400000;
 	}
@@ -65,8 +70,7 @@ class RandomDuck extends AnimalSource {
 	}
 
 	fetchRandomImageInfo() {
-		return fetch('https://api.codetabs.com/v1/proxy?quest=https://random-d.uk/api/v2/random')
-			.then(response => response.json())
+		return this.fetchCORS('https://random-d.uk/api/v2/random')
 			.then(data => ({
 				id: data.url.split('/').at(-1),
 				imageURL: data.url
@@ -84,8 +88,7 @@ class AxoltlAPI extends AnimalSource {
 	}
 
 	fetchRandomImageInfo() {
-		return fetch('https://api.codetabs.com/v1/proxy?quest=https://axoltlapi.herokuapp.com/')
-			.then(response => response.json())
+		return this.fetchCORS('https://axoltlapi.herokuapp.com/')
 			.then(data => ({ id: data.url, imageURL: data.url }))
 	}
 }
@@ -168,7 +171,7 @@ class FishWatch extends AnimalSource {
 	async prePopulate() {
 		if (!this.isStale()) return
 
-		this.fishes = await fetch('https://api.codetabs.com/v1/proxy?quest=https://www.fishwatch.gov/api/species').then(response => response.json())
+		this.fishes = await this.fetchCORS('https://www.fishwatch.gov/api/species').then(response => response.json())
 		this.save();
 	}
 
@@ -240,7 +243,7 @@ class RandomCat extends AnimalSource {
 	}
 
 	async fetchRandomImageInfo() {
-		return fetch('https://api.codetabs.com/v1/proxy?quest=https://aws.random.cat/meow').then(response => response.json()).then(data => ({
+		return this.fetchCORS('https://aws.random.cat/meow').then(response => response.json()).then(data => ({
 			id: data.file,
 			imageURL: data.file
 		}))
@@ -256,7 +259,7 @@ class ElephantAPI extends AnimalSource {
 	async prePopulate() {
 		if (!this.isStale()) return;
 
-		this.filenames = await fetch('https://api.codetabs.com/v1/proxy?quest=https://elephant-api.herokuapp.com/elephants')
+		this.filenames = await this.fetchCORS('https://elephant-api.herokuapp.com/elephants')
 			.then(response => response.json())
 			.then(data =>
 				data.map(elephant => elephant.image)
@@ -312,7 +315,7 @@ class Shibe extends AnimalSource {
 	fetchRandomImageInfo(species) {
 		species = this.normalizeSpecies(species)
 
-		return fetch(`https://api.codetabs.com/v1/proxy?quest=http://shibe.online/api/${species}s?count=1`)
+		return this.fetchCORS(`http://shibe.online/api/${species}s?count=1`)
 			.then(response => response.json())
 			.then(data => ({
 				id: data[0].split('/').at(-1).split('.')[0],
@@ -394,10 +397,8 @@ async function loadImagesFromURL() {
 		IMG_COUNT.value = info.length
 		onCountUpdate({ target: IMG_COUNT })
 	}
-	for (let i = 0; i < info.length; i++) waiting.push(handleImageFetching((async ({ id, sourceID, species }) => {
-		const source = SOURCES.find(source => source.id === sourceID)
-		return source.fetchImageInfoByID(id, species)
-	})(info[i]), i))
+	for (let i = 0; i < info.length; i++) waiting.push(handleImageFetching((async ({ id, sourceID, species }) => SOURCES.find(source => source.id === sourceID).fetchImageInfoByID(id, species)
+	)(info[i]), i));
 	await Promise.all(waiting);
 
 	FIELDSET.disabled = false;
