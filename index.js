@@ -45,7 +45,7 @@ class AnimalSource {
 	 * @returns {Promise<string>}
 	 */
 	async fetchImageURLById(id, species) {
-		throw new Error('Not Yet Implemented')
+		return id;
 	}
 
 	/**
@@ -56,12 +56,6 @@ class AnimalSource {
 			id,
 			imageURL: await this.fetchImageURLById(id, species)
 		}
-	}
-}
-
-class IDLessAnimalSource extends AnimalSource {
-	fetchImageURLById() {
-		throw new Error(`${this.name} does not support IDs`);
 	}
 }
 
@@ -84,7 +78,7 @@ class RandomDuck extends AnimalSource {
 	}
 }
 
-class AxoltlAPI extends IDLessAnimalSource {
+class AxoltlAPI extends AnimalSource {
 	constructor() {
 		super('axoltlapi', 'Axoltl API', 'Axolotl')
 	}
@@ -92,11 +86,11 @@ class AxoltlAPI extends IDLessAnimalSource {
 	fetchRandomImageInfo() {
 		return fetch('https://api.codetabs.com/v1/proxy?quest=https://axoltlapi.herokuapp.com/')
 			.then(response => response.json())
-			.then(data => ({ imageURL: data.url }))
+			.then(data => ({ id: data.url, imageURL: data.url }))
 	}
 }
 
-class ZooAnimalAPI extends IDLessAnimalSource {
+class ZooAnimalAPI extends AnimalSource {
 	constructor() {
 		super('zoo-animal-api', 'Zoo Animal API')
 	}
@@ -104,7 +98,7 @@ class ZooAnimalAPI extends IDLessAnimalSource {
 	fetchRandomImageInfo() {
 		return fetch('https://zoo-animal-api.herokuapp.com/animals/rand')
 			.then(response => response.json())
-			.then(data => ({ imageURL: data.image_link }))
+			.then(data => ({ id: data.image_link, imageURL: data.image_link }))
 	}
 }
 
@@ -188,7 +182,7 @@ class FishWatch extends AnimalSource {
 		await this.prePopulate();
 
 		const fishIndex = Math.floor(Math.random() * this.fishes.length);
-		const images = getFishImages(this.fishes[fishIndex]);
+		const images = this.getFishImages(this.fishes[fishIndex]);
 		const imageIndex = Math.floor(Math.random() * images.length)
 		const image = images[imageIndex]
 		// TODO - use fish id
@@ -202,7 +196,7 @@ class FishWatch extends AnimalSource {
 		await this.prePopulate();
 
 		const [fishIndex, imageIndex] = id.split('-').map(Number);
-		return getFishImages(this.fishes[fishIndex])[imageIndex].src
+		return this.getFishImages(this.fishes[fishIndex])[imageIndex].src
 	}
 }
 
@@ -247,13 +241,9 @@ class RandomCat extends AnimalSource {
 
 	async fetchRandomImageInfo() {
 		return fetch('https://api.codetabs.com/v1/proxy?quest=https://aws.random.cat/meow').then(response => response.json()).then(data => ({
-			id: data.file.split('/').at(-1),
+			id: data.file,
 			imageURL: data.file
 		}))
-	}
-
-	async fetchImageURLById(id) {
-		return 'https://purr.objects-us-east-1.dream.io/i/' + id
 	}
 }
 
@@ -298,7 +288,7 @@ class TheCatAPI extends AnimalSource {
 		return fetch('https://api.thecatapi.com/v1/images/search')
 			.then(response => response.json())
 			.then(data => ({
-				id: data[0].id,
+				id: data[0].url.split('/').at(-1),
 				imageURL: data[0].url
 			}))
 	}
@@ -313,20 +303,25 @@ class Shibe extends AnimalSource {
 		super('shibe', 'Shibe', 'Dog', 'Cat', 'Bird')
 	}
 
-	fetchRandomImageInfo(species) {
+	normalizeSpecies(species) {
 		if (species === 'Dog') species = 'Shibe'
 		species = species.toLowerCase()
+		return species
+	}
 
-		return fetch(`https://api.codetabs.com/v1/proxy?quest=http://shibe.online/api/${species}s?count=1&urls=false`)
+	fetchRandomImageInfo(species) {
+		species = this.normalizeSpecies(species)
+
+		return fetch(`https://api.codetabs.com/v1/proxy?quest=http://shibe.online/api/${species}s?count=1`)
 			.then(response => response.json())
 			.then(data => ({
-				id: data[0],
-				imageURL: `https://cdn.shibe.online/${species}s/` + data[0] + '.jpg'
+				id: data[0].split('/').at(-1).split('.')[0],
+				imageURL: data[0]
 			}))
 	}
 
 	async fetchImageURLById(id, species) {
-		return `https://cdn.shibe.online/${species}s/` + id + '.jpg'
+		return `https://cdn.shibe.online/${this.normalizeSpecies(species)}s/` + id + '.jpg'
 	}
 }
 
@@ -339,13 +334,9 @@ class SomeRandomAPI extends AnimalSource {
 		return fetch('https://some-random-api.ml/animal/' + species.toLowerCase().replaceAll(' ', '_'))
 			.then(response => response.json())
 			.then(data => ({
-				id: data.image.split('/').at(-1),
+				id: data.image,
 				imageURL: data.image
 			}))
-	}
-
-	async fetchImageURLById(id) {
-		return `https://i.some-random-api.ml/${id}.jpg`
 	}
 }
 
@@ -356,11 +347,12 @@ const SOURCES = [RandomDuck, AxoltlAPI, ZooAnimalAPI, DogCEO, BunniesIO, RandomF
 function handleImageFetching(promise, nth) {
 	return promise
 		.catch(err => alert(err.message))
-		.then(({ id, imageURL }) => new Promise((resolve, reject) => {
-			console.log({ id, imageURL })
-			IMG[nth].addEventListener('load', resolve.bind(null, id), { once: true })
+		.then((info) => new Promise((resolve, reject) => {
+			if (!info) return resolve();
+
+			IMG[nth].addEventListener('load', resolve.bind(null, info.id), { once: true })
 			IMG[nth].addEventListener('error', () => reject(new Error('Image failed to load')), { once: true })
-			IMG[nth].src = imageURL;
+			IMG[nth].src = info.imageURL;
 		}))
 		.catch(err => alert(err.message))
 }
@@ -390,7 +382,7 @@ async function loadImagesFromURL() {
 
 	const info = []
 	for (const [i, id] of hotlinkParams.getAll('ids').entries()) {
-		if (id != undefined) info.push({ id, sourceID: sources[i], species: specieses[i] })
+		if (id != 'undefined') info.push({ id, sourceID: sources[i], species: specieses[i] })
 	}
 
 	if (!info.length) return;
@@ -398,7 +390,11 @@ async function loadImagesFromURL() {
 	FIELDSET.disabled = true;
 
 	const waiting = []
-	for (let i = 0; i < +IMG_COUNT.value; i++) waiting.push(handleImageFetching((async ({ id, sourceID, species }) => {
+	if (info.length < +IMG_COUNT.value) {
+		IMG_COUNT.value = info.length
+		onCountUpdate({ target: IMG_COUNT })
+	}
+	for (let i = 0; i < info.length; i++) waiting.push(handleImageFetching((async ({ id, sourceID, species }) => {
 		const source = SOURCES.find(source => source.id === sourceID)
 		return source.fetchImageInfoByID(id, species)
 	})(info[i]), i))
@@ -419,6 +415,7 @@ FETCH_BUTTON.addEventListener('click', async () => {
 	params.delete('sources')
 	params.delete('species')
 	for (const { id, species, sourceID } of info) {
+		if (id === undefined) continue
 		params.append('ids', id);
 		params.append('sources', sourceID);
 		params.append('species', species);
