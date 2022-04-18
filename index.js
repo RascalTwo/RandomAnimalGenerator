@@ -1,4 +1,4 @@
-const IMG = document.querySelectorAll('img');
+const IMGS = document.querySelectorAll('img');
 const FETCH_BUTTON = document.querySelector('button');
 const IMG_COUNT = document.querySelector('input');
 const SOURCE_SELECT = document.querySelector('#sources');
@@ -350,9 +350,9 @@ function handleImageFetching(promise, nth) {
 		.then((info) => new Promise((resolve, reject) => {
 			if (!info) return resolve();
 
-			IMG[nth].addEventListener('load', resolve.bind(null, info.id), { once: true })
-			IMG[nth].addEventListener('error', () => reject(new Error('Image failed to load')), { once: true })
-			IMG[nth].src = info.imageURL;
+			IMGS[nth].addEventListener('load', resolve.bind(null, info.id), { once: true })
+			IMGS[nth].addEventListener('error', () => reject(new Error('Image failed to load')), { once: true })
+			IMGS[nth].src = info.imageURL;
 		}))
 		.catch(err => alert(err.message))
 }
@@ -380,7 +380,7 @@ function updateLocationHash(values) {
 	for (const key in values) params.delete(key);
 	for (const key in values) {
 		const value = values[key]
-		if (Array.isArray(key)) for (const item in value) params.append(key, item);
+		if (Array.isArray(value)) for (const item of value) params.append(key, item);
 		else params.set(key, value)
 	}
 	history.pushState(null, null, window.location.pathname + '#' + params.toString())
@@ -411,25 +411,24 @@ FETCH_BUTTON.addEventListener('click', async () => {
 	}
 })
 
+function renderSelect(select, iterable) {
+	const oldValue = select.value;
+
+	while (select.childElementCount > 1) select.children[1].remove()
+
+	for (const props of iterable) select.appendChild(Object.assign(document.createElement('option'), props));
+
+	select.value = oldValue;
+	if (!select.value) select.value = '';
+}
+
 function renderSpecies() {
 	const selectedSource = SOURCE_SELECT.value;
 	const sources = selectedSource
 		? [SOURCES.find(source => source.id === selectedSource)]
 		: SOURCES
 
-	const oldValue = SPECIES_SELECT.value;
-
-	while (SPECIES_SELECT.childElementCount > 1) SPECIES_SELECT.children[1].remove()
-
-	for (const species of [...new Set(sources.flatMap(source => source.species))]) {
-		const option = document.createElement('option')
-		option.textContent = species
-
-		SPECIES_SELECT.appendChild(option);
-	}
-
-	SPECIES_SELECT.value = oldValue;
-	if (!SPECIES_SELECT.value) SPECIES_SELECT.value = '';
+	renderSelect(SPECIES_SELECT, [...new Set(sources.flatMap(source => source.species))].map(species => ({ textContent: species })))
 
 	return updateLocationHash({ 'select-source': selectedSource })
 }
@@ -437,21 +436,7 @@ function renderSpecies() {
 function renderSources() {
 	const species = SPECIES_SELECT.value;
 
-	const oldValue = SOURCE_SELECT.value;
-
-	while (SOURCE_SELECT.childElementCount > 1) SOURCE_SELECT.children[1].remove()
-
-	for (const source of SOURCES) {
-		if (species && !source.species.includes(species)) continue
-		const option = document.createElement('option')
-		option.value = source.id
-		option.textContent = source.name
-
-		SOURCE_SELECT.appendChild(option);
-	}
-
-	SOURCE_SELECT.value = oldValue;
-	if (!SOURCE_SELECT.value) SOURCE_SELECT.value = '';
+	renderSelect(SOURCE_SELECT, SOURCES.filter(source => !species || source.species.includes(species)).map(source => ({ value: source.id, textContent: source.name })))
 
 	return updateLocationHash({ 'select-species': species })
 }
@@ -463,7 +448,7 @@ const setImageCount = (() => {
 	function onCountUpdate({ target: { value } }) {
 		const count = +value;
 
-		for (const [i, img] of IMG.entries()) img.classList.toggle('hidden', i >= count)
+		for (const [i, img] of IMGS.entries()) img.classList.toggle('hidden', i >= count)
 		document.querySelector('#image-container').style.setProperty('--columns', Math.ceil(count / 2))
 
 		updateLocationHash({ count });
@@ -493,19 +478,21 @@ const setImageCount = (() => {
 
 
 	const sources = params.getAll('sources')
-	const specieses = params.getAll('species')
+	const specieses = params.getAll('specieses')
 
-	const info = []
-	for (const [i, id] of params.getAll('ids').entries()) {
-		if (id != 'undefined') info.push({ id, source: sources[i], species: specieses[i] })
-	}
-
+	const info = params.getAll('ids').map((id, i) => ({ id, source: sources[i], species: specieses[i] }))
 	if (!info.length) return;
 
 	for (const _ of handleFormState()) {
-		const waiting = []
 		if (info.length < +IMG_COUNT.value) setImageCount(info.length);
-		for (let i = 0; i < info.length; i++) waiting.push(handleImageFetching((async ({ id, source, species }) => SOURCES.find(src => src.id === source).fetchImageInfoByID(id, species))(info[i]), i));
-		await Promise.all(waiting);
+
+		await Promise.all(Array.from(
+			{ length: info.length },
+			(_, i) => handleImageFetching(
+				(async ({ id, source, species }) => SOURCES.find(src => src.id === source).fetchImageInfoByID(id, species))(info[i]),
+				i
+			)
+		));
+
 	}
 })().catch(console.error)
