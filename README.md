@@ -4,6 +4,7 @@
 
 Shows random animal pictures, using 12 APIs:
 
+- https://aws.random.cat/
 - https://random-d.uk/api
 - https://theaxolotlapi.netlify.app/
 - https://zoo-animal-api.herokuapp.com/
@@ -16,3 +17,5 @@ Shows random animal pictures, using 12 APIs:
 - https://random.dog/
 - https://shibe.online/
 - https://some-random-api.ml/endpoints
+
+In addition supports direct linking to results, simply copy the URL from the address bar to always return to your favourite images!
