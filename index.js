@@ -424,15 +424,6 @@ FETCH_BUTTON.addEventListener('click', async () => {
 	FIELDSET.disabled = false;
 })
 
-
-for (const source of SOURCES) {
-	const option = document.createElement('option')
-	option.value = source.id
-	option.textContent = source.name
-
-	SOURCE_SELECT.appendChild(option);
-}
-
 function renderSpecies() {
 	const selectedSource = SOURCE_SELECT.value;
 	const sources = selectedSource
