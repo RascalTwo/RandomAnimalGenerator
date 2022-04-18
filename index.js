@@ -374,6 +374,11 @@ function fetchRandomImage(nth) {
 		.then(id => ({ id, species, sourceID: source.id }))
 }
 
+function setImageCount(count){
+	IMG_COUNT.value = count
+	onCountUpdate({ target: IMG_COUNT })
+}
+
 async function loadImagesFromURL() {
 	const hotlinkParams = new URLSearchParams(window.location.hash.slice(1));
 	const sources = hotlinkParams.getAll('sources')
@@ -389,10 +394,7 @@ async function loadImagesFromURL() {
 	FIELDSET.disabled = true;
 
 	const waiting = []
-	if (info.length < +IMG_COUNT.value) {
-		IMG_COUNT.value = info.length
-		onCountUpdate({ target: IMG_COUNT })
-	}
+	if (info.length < +IMG_COUNT.value) setImageCount(info.length);
 	for (let i = 0; i < info.length; i++) waiting.push(handleImageFetching((async ({ id, sourceID, species }) => SOURCES.find(source => source.id === sourceID).fetchImageInfoByID(id, species)
 	)(info[i]), i));
 	await Promise.all(waiting);
@@ -505,7 +507,6 @@ renderSources();
 renderSpecies();
 
 
-IMG_COUNT.value = +(params.get('count') || '1')
-onCountUpdate({ target: IMG_COUNT })
+setImageCount(+(params.get('count') || '1'))
 
 loadImagesFromURL().catch(console.error)
