@@ -372,13 +372,17 @@ function fetchRandomImage(nth) {
 
 	const species = selectedSpecies ? selectedSpecies : source.species[Math.floor(Math.random() * source.species.length)]
 	return handleImageFetching(source.fetchRandomImageInfo(species), nth)
-		.then(id => ({ id, species, sourceID: source.id }))
+		.then(id => ({ id, species, source: source.id }))
 }
 
 function updateLocationHash(values) {
 	const params = new URLSearchParams(window.location.hash.slice(1));
 	for (const key in values) params.delete(key);
-	for (const key in values) params.append(key, values[key]);
+	for (const key in values) {
+		const value = values[key]
+		if (Array.isArray(key)) for (const item in value) params.append(key, item);
+		else params.set(key, value)
+	}
 	history.pushState(null, null, window.location.pathname + '#' + params.toString())
 }
 
@@ -398,17 +402,12 @@ FETCH_BUTTON.addEventListener('click', async () => {
 		for (let i = 0; i < +IMG_COUNT.value; i++) waiting.push(fetchRandomImage(i))
 		const info = await Promise.all(waiting);
 
-		const params = new URLSearchParams(window.location.hash.slice(1));
-		params.delete('ids')
-		params.delete('sources')
-		params.delete('species')
-		for (const { id, species, sourceID } of info) {
-			if (id === undefined) continue
-			params.append('ids', id);
-			params.append('sources', sourceID);
-			params.append('species', species);
-		}
-		history.pushState(null, null, window.location.pathname + '#' + params.toString())
+		return updateLocationHash(info.filter(({ id }) => id !== undefined).reduce(({ ids, sources, specieses }, { id, source, species }) => {
+			ids.push(id)
+			sources.push(source)
+			specieses.push(species)
+			return { ids, sources, specieses }
+		}, { ids: [], sources: [], specieses: [] }))
 	}
 })
 
@@ -432,9 +431,7 @@ function renderSpecies() {
 	SPECIES_SELECT.value = oldValue;
 	if (!SPECIES_SELECT.value) SPECIES_SELECT.value = '';
 
-	const params = new URLSearchParams(window.location.hash.slice(1))
-	params.set('select-source', selectedSource)
-	history.pushState(null, null, window.location.pathname + '#' + params.toString())
+	return updateLocationHash({ 'select-source': selectedSource })
 }
 
 function renderSources() {
@@ -456,9 +453,7 @@ function renderSources() {
 	SOURCE_SELECT.value = oldValue;
 	if (!SOURCE_SELECT.value) SOURCE_SELECT.value = '';
 
-	const params = new URLSearchParams(window.location.hash.slice(1))
-	params.set('select-species', species)
-	history.pushState(null, null, window.location.pathname + '#' + params.toString())
+	return updateLocationHash({ 'select-species': species })
 }
 
 SPECIES_SELECT.addEventListener('change', renderSources);
@@ -502,7 +497,7 @@ const setImageCount = (() => {
 
 	const info = []
 	for (const [i, id] of params.getAll('ids').entries()) {
-		if (id != 'undefined') info.push({ id, sourceID: sources[i], species: specieses[i] })
+		if (id != 'undefined') info.push({ id, source: sources[i], species: specieses[i] })
 	}
 
 	if (!info.length) return;
@@ -510,7 +505,7 @@ const setImageCount = (() => {
 	for (const _ of handleFormState()) {
 		const waiting = []
 		if (info.length < +IMG_COUNT.value) setImageCount(info.length);
-		for (let i = 0; i < info.length; i++) waiting.push(handleImageFetching((async ({ id, sourceID, species }) => SOURCES.find(source => source.id === sourceID).fetchImageInfoByID(id, species))(info[i]), i));
+		for (let i = 0; i < info.length; i++) waiting.push(handleImageFetching((async ({ id, source, species }) => SOURCES.find(src => src.id === source).fetchImageInfoByID(id, species))(info[i]), i));
 		await Promise.all(waiting);
 	}
 })().catch(console.error)
